@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<ul>
+    <li></li>
+</ul>
+
+<body>
+    <script>
+        fetch('/shop').then(r => r.json()).then(result => {
+            for (let i in result) {
+                console.log(i, result[i])
+            }
+        })
+    </script>
+</body>
+
+</html>
