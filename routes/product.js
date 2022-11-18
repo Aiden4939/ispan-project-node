@@ -39,11 +39,13 @@ router.get("/:shop_sid", async (req, res) => {
 });
 
 router.post("/:shop_sid", upload.single("avatar"), async (req, res) => {
+  console.log("post");
   console.log(req.file);
   console.log(req.body);
   const { shop_sid } = req.params;
-  const { name, price, type, note, discount, options_types } = req.body;
-  console.log(name, price, type, note, discount, options_types);
+  let { name, price, type, note, discount, options_types, available } =
+    req.body;
+  console.log(name, price, type, note, discount, options_types, available);
 
   const output = {
     success: false,
@@ -57,7 +59,8 @@ router.post("/:shop_sid", upload.single("avatar"), async (req, res) => {
   const [[{ num: order }]] = await db.query(order_sql, [type]);
 
   // 找到上傳圖片的路徑名稱(檔名)，當作資料表中的src
-  const src = req.file.filename;
+  const src = req.file ? req.file.filename : "";
+  available = available ? 1 : 0;
 
   // 把這個商品的基本資料填入
   const product_sql =
@@ -70,7 +73,7 @@ router.post("/:shop_sid", upload.single("avatar"), async (req, res) => {
     shop_sid,
     src,
     note,
-    1,
+    available,
     discount,
   ]);
 
@@ -88,8 +91,52 @@ router.post("/:shop_sid", upload.single("avatar"), async (req, res) => {
 });
 
 // 修改一筆資料，params傳入的值是要修改的product_sid
-router.put('/:sid',async () => {
- const {sid} = req.params;
-})
+router.put("/:shop_sid", upload.single("avatar"), async (req, res) => {
+  //  const {sid} = req.params;
+  console.log("put");
+  const { shop_sid } = req.params;
+  let { sid, name, price, type, note, discount, options_types, available } =
+    req.body;
+  console.log(req.body);
+  const output = {
+    success: false,
+    error: "",
+    postData: [req.body, req.file],
+  };
+
+  // 找到上傳圖片的路徑名稱(檔名)，當作資料表中的src
+  const src = req.file ? req.file.filename : "";
+  available = available ? 1 : 0;
+
+  try {
+    const product_sql =
+      "UPDATE `products` SET `name`=?,`price`=?,`products_type_sid`=?,`src`=?,`note`=?,`available`=?,`discount`=? WHERE sid=?";
+    const [result] = await db.query(product_sql, [
+      name,
+      price,
+      type,
+      src,
+      note,
+      available,
+      discount,
+      sid,
+    ]);
+
+    // 刪除這個商品之前所有跟option_type的關係
+    const delete_relation_sql = 'DELETE FROM `options_types_products_relation` otpr JOIN `products` p  ON p.sid = otpr.product_sid WHERE p.sid = ?'
+    const [delete_relation_result] = await db.query(delete_relation_sql,[sid])
+
+    const product_option_sql = 'UPDATE `options_types_products_relation` SET `sid`=?,`product_sid`=?,`options_type_sid`=? WHERE shop_sid=?'
+    
+
+    if (result.affectedRows) {
+      output.success = true;
+    }
+  } catch (e) {
+    output.error = e;
+  }
+
+  console.log(output);
+});
 
 module.exports = router;
