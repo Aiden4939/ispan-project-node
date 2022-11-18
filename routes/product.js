@@ -87,4 +87,9 @@ router.post("/:shop_sid", upload.single("avatar"), async (req, res) => {
   }
 });
 
+// 修改一筆資料，params傳入的值是要修改的product_sid
+router.put('/:sid',async () => {
+ const {sid} = req.params;
+})
+
 module.exports = router;
