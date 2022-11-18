@@ -31,7 +31,7 @@ app.get('/store-list',async (req, res) => {
 app.use("/store-admin/overview", require("./routes/overview"));
 app.use("/store-admin/type", require("./routes/type"));
 app.use("/store-admin/product", require("./routes/product"));
-// app.use("/option", require("./routes/option"));
+app.use("/store-admin/option", require("./routes/option"));
 
 app.get("*", (req, res) => {
   res.status(404).send("This page not found");

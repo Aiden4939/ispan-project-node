@@ -17,6 +17,7 @@ router.get("/:shop_sid", async (req, res) => {
   const product_sql = "SELECT * FROM `products` WHERE shop_sid=?";
   const [product_rows] = await db.query(product_sql, [shop_sid]);
 
+  // 帶有product_sid的option_type
   const option_type_sql =
     "SELECT ot.*, otpr.product_sid FROM `options_types` ot JOIN `options_types_products_relation` otpr ON ot.sid=otpr.options_type_sid JOIN `products` p ON otpr.product_sid=p.sid WHERE p.shop_sid=?";
   const [option_type_rows] = await db.query(option_type_sql, [shop_sid]);
