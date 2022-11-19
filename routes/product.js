@@ -61,6 +61,7 @@ router.post("/:shop_sid", upload.single("avatar"), async (req, res) => {
   // 找到上傳圖片的路徑名稱(檔名)，當作資料表中的src
   const src = req.file ? req.file.filename : "";
   available = available ? 1 : 0;
+  discount = discount.trim() ? Number(discount) : 0;
 
   // 把這個商品的基本資料填入
   const product_sql =
@@ -107,7 +108,9 @@ router.put("/:shop_sid", upload.single("avatar"), async (req, res) => {
   // 找到上傳圖片的路徑名稱(檔名)，當作資料表中的src
   const src = req.file ? req.file.filename : "";
   available = available ? 1 : 0;
-
+  discount = discount.trim() ? Number(discount) : 0;
+  options_types = options_types ? options_types : [];
+  console.log(discount);
   try {
     const product_sql =
       "UPDATE `products` SET `name`=?,`price`=?,`products_type_sid`=?,`src`=?,`note`=?,`available`=?,`discount`=? WHERE sid=?";
@@ -122,21 +125,44 @@ router.put("/:shop_sid", upload.single("avatar"), async (req, res) => {
       sid,
     ]);
 
-    // 刪除這個商品之前所有跟option_type的關係
-    const delete_relation_sql = 'DELETE FROM `options_types_products_relation` otpr JOIN `products` p  ON p.sid = otpr.product_sid WHERE p.sid = ?'
-    const [delete_relation_result] = await db.query(delete_relation_sql,[sid])
+    // 先刪除這個商品跟所有option_type的關係
+    const delete_relation_sql =
+      "DELETE FROM `options_types_products_relation` WHERE product_sid=?";
+    const [delete_relation_result] = await db.query(delete_relation_sql, [sid]);
 
-    const product_option_sql = 'UPDATE `options_types_products_relation` SET `sid`=?,`product_sid`=?,`options_type_sid`=? WHERE shop_sid=?'
-    
-
-    if (result.affectedRows) {
-      output.success = true;
+    // 重新新增商品跟勾選option_type的關係
+    const insert_relation_sql =
+      "INSERT INTO `options_types_products_relation`(`product_sid`, `options_type_sid`) VALUES (?,?)";
+    for (let i = 0; i < options_types.length; i++) {
+      const [insert_relation_result] = await db.query(insert_relation_sql, [
+        sid,
+        options_types[i],
+      ]);
+      console.log(`insert_relation_result-${i} : `, insert_relation_result);
     }
+
+    console.log("result : ", result);
+    console.log("delete_relation_result : ", delete_relation_result);
+    // if (result.affectedRows && delete_relation_result.affectedRows) {
+    //   output.success = true;
+    // }
   } catch (e) {
+    if(!e) {
+      output.success = true
+    }
     output.error = e;
   }
 
+  res.json(output);
   console.log(output);
 });
+
+router.delete('/:sid',upload.none(),async (req, res) => {
+  const {sid} = req.params;
+  const sql = 'DELETE FROM `products` WHERE sid=?'
+  const [result] = await db.query(sql,[sid])
+  res.json(result)
+  console.log(result)
+})
 
 module.exports = router;
