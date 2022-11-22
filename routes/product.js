@@ -82,12 +82,14 @@ router.post("/:shop_sid", upload.single("avatar"), async (req, res) => {
   const product_option_sql =
     "INSERT INTO `options_types_products_relation`( `product_sid`, `options_type_sid`) VALUES (?,?)";
   // 將一個一個的options_type跟新商品建立關係
-  for (let i = 0; i < options_types.length; i++) {
-    const [product_option_result] = await db.query(product_option_sql, [
-      product_result.insertId,
-      options_types[i],
-    ]);
-    console.log(product_option_result);
+  if (options_types && options_types.length > 0) {
+    for (let i = 0; i < options_types.length; i++) {
+      const [product_option_result] = await db.query(product_option_sql, [
+        product_result.insertId,
+        options_types[i],
+      ]);
+      console.log(product_option_result);
+    }
   }
 });
 
@@ -147,8 +149,8 @@ router.put("/:shop_sid", upload.single("avatar"), async (req, res) => {
     //   output.success = true;
     // }
   } catch (e) {
-    if(!e) {
-      output.success = true
+    if (!e) {
+      output.success = true;
     }
     output.error = e;
   }
@@ -157,12 +159,12 @@ router.put("/:shop_sid", upload.single("avatar"), async (req, res) => {
   console.log(output);
 });
 
-router.delete('/:sid',upload.none(),async (req, res) => {
-  const {sid} = req.params;
-  const sql = 'DELETE FROM `products` WHERE sid=?'
-  const [result] = await db.query(sql,[sid])
-  res.json(result)
-  console.log(result)
-})
+router.delete("/:sid", upload.none(), async (req, res) => {
+  const { sid } = req.params;
+  const sql = "DELETE FROM `products` WHERE sid=?";
+  const [result] = await db.query(sql, [sid]);
+  res.json(result);
+  console.log(result);
+});
 
 module.exports = router;
